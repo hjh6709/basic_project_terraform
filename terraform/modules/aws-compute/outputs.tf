@@ -7,3 +7,8 @@ output "instance_id" {
   description = "EC2 Instance ID"
   value       = aws_instance.k3s.id
 }
+
+output "security_group_id" {
+  description = "Security Group ID"
+  value       = aws_security_group.k3s.id
+}

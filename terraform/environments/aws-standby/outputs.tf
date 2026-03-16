@@ -20,6 +20,11 @@ output "ssh_command" {
   value       = "ssh -i ~/.ssh/chilseong-jh.pem ubuntu@${module.compute.ec2_elastic_ip}"
 }
 
+output "security_group_id" {
+  description = "Security Group ID"
+  value       = module.compute.security_group_id
+}
+
 # ansible inventory 자동 생성
 resource "local_file" "ansible_inventory" {
   content = yamlencode({

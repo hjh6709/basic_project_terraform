@@ -43,16 +43,20 @@ jobs:
         working-directory: terraform/environments/aws-standby
         run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
 
-      - name: Get GitHub Actions IP
+      - name: Get GitHub Actions IP and Security Group ID
+        working-directory: terraform/environments/aws-standby
         run: |
           ACTIONS_IP=$(curl -s https://api.ipify.org)/32
           echo "ACTIONS_IP=$ACTIONS_IP" >> $GITHUB_ENV
           echo "GitHub Actions IP: $ACTIONS_IP"
+          SG_ID=$(terraform output -raw security_group_id)
+          echo "SG_ID=$SG_ID" >> $GITHUB_ENV
+          echo "Security Group ID: $SG_ID"
 
       - name: Add GitHub Actions IP to Security Group
         run: |
           aws ec2 authorize-security-group-ingress \
-            --group-name hybrid-project-dev-aws-standby-k3s-sg \
+            --group-id ${{ env.SG_ID }} \
             --protocol tcp \
             --port 22 \
             --cidr ${{ env.ACTIONS_IP }} \
@@ -92,7 +96,7 @@ jobs:
         if: always()
         run: |
           aws ec2 revoke-security-group-ingress \
-            --group-name hybrid-project-dev-aws-standby-k3s-sg \
+            --group-id ${{ env.SG_ID }} \
             --protocol tcp \
             --port 22 \
             --cidr ${{ env.ACTIONS_IP }} \
