@@ -19,5 +19,5 @@
 .idea/
 
 # ansible 자동 생성 파일
-infra/hybrid-cloud/aws/ansible/inventory/hosts.yml
-infra/hybrid-cloud/aws/ansible/kubeconfig/
+ansible/inventory/hosts.yml
+ansible/kubeconfig/

@@ -83,14 +83,14 @@ jobs:
           done
 
       - name: Run Ansible Playbook
-        working-directory: infra/hybrid-cloud/aws/ansible
+        working-directory: ansible
         run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem
 
       - name: Upload kubeconfig
         uses: actions/upload-artifact@v4
         with:
           name: kubeconfig
-          path: infra/hybrid-cloud/aws/ansible/kubeconfig/k3s.yaml
+          path: ansible/kubeconfig/k3s.yaml
 
       - name: Remove GitHub Actions IP from Security Group
         if: always()
