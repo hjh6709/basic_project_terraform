@@ -1,0 +1,74 @@
+name: Ansible AWS Standby Setup
+
+on:
+  workflow_run:
+    workflows:
+      - "Terraform AWS Standby"
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  ansible:
+    name: Ansible Setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Terraform Init
+        working-directory: terraform/environments/aws-standby
+        run: terraform init
+
+      - name: Generate Ansible Inventory
+        working-directory: terraform/environments/aws-standby
+        run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/chilseong-jh.pem
+          chmod 600 ~/.ssh/chilseong-jh.pem
+
+      - name: Wait for EC2 SSH
+        working-directory: terraform/environments/aws-standby
+        run: |
+          EC2_IP=$(terraform output -raw ec2_elastic_ip)
+          echo "Waiting for EC2 SSH..."
+          for i in {1..20}; do
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/chilseong-jh.pem ubuntu@$EC2_IP "echo ready"; then
+              echo "EC2 is ready!"
+              break
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 15
+          done
+
+      - name: Run Ansible Playbook
+        working-directory: infra/hybrid-cloud/aws/ansible
+        run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem
+
+      - name: Upload kubeconfig
+        uses: actions/upload-artifact@v3
+        with:
+          name: kubeconfig
+          path: infra/hybrid-cloud/aws/ansible/kubeconfig/k3s.yaml

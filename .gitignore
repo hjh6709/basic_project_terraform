@@ -1,0 +1,23 @@
+# 테라폼 로컬 캐시
+.terraform/
+.terraform.lock.hcl
+
+# 상태 파일 (민감 정보 포함)
+*.tfstate
+*.tfstate.backup
+
+# 변수 파일 (민감 정보 포함)
+*.tfvars
+*.tfvars.json
+
+# SSH 키
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+
+# ansible 자동 생성 파일
+infra/hybrid-cloud/aws/ansible/inventory/hosts.yml
+infra/hybrid-cloud/aws/ansible/kubeconfig/
