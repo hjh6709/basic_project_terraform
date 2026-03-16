@@ -1,20 +1,20 @@
 # -----------------------------------------------
 # Ubuntu 22.04 LTS AMI
-# SSM Parameter Store에서 최신 AMI ID 자동 조회
+# SSM Parameter Store - latest AMI ID
 # -----------------------------------------------
 data "aws_ssm_parameter" "ubuntu_2204" {
   name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 }
 
 # -----------------------------------------------
-# 보안 그룹
+# Security Group
 # -----------------------------------------------
 resource "aws_security_group" "k3s" {
   name        = "${var.name_prefix}-k3s-sg"
-  description = "k3s 단일 노드 보안 그룹"
+  description = "k3s single node security group"
   vpc_id      = var.vpc_id
 
-  # SSH - 운영자 IP만 허용
+  # SSH - operator only
   ingress {
     description = "SSH from operator"
     from_port   = 22
@@ -23,7 +23,7 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = [var.my_ip]
   }
 
-  # HTTP - Cloudflare 트래픽
+  # HTTP - Cloudflare traffic
   ingress {
     description = "HTTP"
     from_port   = 80
@@ -32,7 +32,7 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # HTTPS - Cloudflare 트래픽
+  # HTTPS - Cloudflare traffic
   ingress {
     description = "HTTPS"
     from_port   = 443
@@ -42,7 +42,7 @@ resource "aws_security_group" "k3s" {
   }
 
   # Kubernetes API Server
-  # 희정님 Headlamp + 승민님 kubectl 배포
+  # Headlamp + kubectl deploy
   ingress {
     description = "Kubernetes API Server"
     from_port   = 6443
@@ -52,7 +52,7 @@ resource "aws_security_group" "k3s" {
   }
 
   # App /metrics + /health
-  # 희정님 Prometheus Scrape + Cloudflare Health Check
+  # Prometheus Scrape + Cloudflare Health Check
   ingress {
     description = "App metrics and health check"
     from_port   = 8080
@@ -62,7 +62,7 @@ resource "aws_security_group" "k3s" {
   }
 
   # Node Exporter
-  # 희정님 Prometheus 인프라 메트릭 수집
+  # Prometheus infrastructure metrics
   ingress {
     description = "Node Exporter"
     from_port   = 9100
@@ -71,7 +71,7 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 노드 내부 통신 (k3s 컴포넌트 간)
+  # Internal node communication (k3s components)
   ingress {
     description = "All traffic within same security group"
     from_port   = 0
@@ -80,8 +80,8 @@ resource "aws_security_group" "k3s" {
     self        = true
   }
 
-  # 아웃바운드 전체 허용
-  # GCP Cloud SQL 접근, DockerHub pull 등
+  # Allow all outbound
+  # GCP Cloud SQL access, DockerHub pull, etc
   egress {
     description = "Allow all outbound"
     from_port   = 0
@@ -96,7 +96,7 @@ resource "aws_security_group" "k3s" {
 }
 
 # -----------------------------------------------
-# EC2 인스턴스 (k3s 단일 노드)
+# EC2 Instance (k3s single node)
 # Ubuntu 22.04 / t3.small / 20GB
 # -----------------------------------------------
 resource "aws_instance" "k3s" {
@@ -124,8 +124,8 @@ resource "aws_instance" "k3s" {
 
 # -----------------------------------------------
 # EC2 Elastic IP
-# 재시작해도 IP 고정
-# 이 IP를 승민님한테 전달 → Cloudflare Failover Origin 등록
+# Fixed IP even after restart
+# Send this IP to Cloudflare Failover Origin
 # -----------------------------------------------
 resource "aws_eip" "ec2" {
   domain     = "vpc"
