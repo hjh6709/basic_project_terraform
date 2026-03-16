@@ -84,7 +84,7 @@ jobs:
 
       - name: Run Ansible Playbook
         working-directory: ansible
-        run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem
+        run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem -i inventory/hosts.yml
 
       - name: Upload kubeconfig
         uses: actions/upload-artifact@v4
