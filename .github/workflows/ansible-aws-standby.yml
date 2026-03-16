@@ -68,7 +68,7 @@ jobs:
         run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem
 
       - name: Upload kubeconfig
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kubeconfig
           path: infra/hybrid-cloud/aws/ansible/kubeconfig/k3s.yaml
