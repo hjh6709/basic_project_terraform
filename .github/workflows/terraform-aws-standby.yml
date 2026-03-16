@@ -8,6 +8,7 @@ on:
       - 'terraform/environments/aws-standby/**'
       - 'terraform/modules/aws-network/**'
       - 'terraform/modules/aws-compute/**'
+      - '.github/workflows/terraform-aws-standby.yml'
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - 'terraform/environments/aws-standby/**'
       - 'terraform/modules/aws-network/**'
       - 'terraform/modules/aws-compute/**'
+      - '.github/workflows/terraform-aws-standby.yml'
 
 jobs:
   terraform:
