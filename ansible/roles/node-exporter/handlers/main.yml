@@ -3,19 +3,3 @@
   systemd:
     name: node_exporter
     state: restarted
-```
-
----
-
-## ansible/inventory/.gitkeep
-```
-# 빈 파일 (폴더 유지용)
-```
-
----
-
-## .gitignore에 추가
-```
-# ansible inventory (자동 생성됨)
-infra/hybrid-cloud/aws/ansible/inventory/hosts.yml
-infra/hybrid-cloud/aws/ansible/kubeconfig/
