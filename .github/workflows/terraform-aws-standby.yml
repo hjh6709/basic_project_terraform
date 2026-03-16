@@ -56,3 +56,14 @@ jobs:
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
+
+      - name: Terraform Output Summary
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "## 🚀 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "| 항목 | 값 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| EC2 Elastic IP (승민님 전달) | $(terraform output -raw ec2_elastic_ip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| NAT Gateway IP (성호님 전달) | $(terraform output -raw nat_gateway_ip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Instance ID | $(terraform output -raw instance_id) |" >> $GITHUB_STEP_SUMMARY
+          echo "| SSH 접속 명령어 | \`$(terraform output -raw ssh_command)\` |" >> $GITHUB_STEP_SUMMARY
