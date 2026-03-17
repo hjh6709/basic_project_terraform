@@ -46,30 +46,15 @@ jobs:
             -var="my_ip=${{ secrets.MY_IP }}" \
             -var="key_name=${{ secrets.KEY_NAME }}"
           EC2_IP=$(terraform output -raw ec2_elastic_ip)
-          mkdir -p ../../ansible/inventory
-          python3 -c "
-import yaml
-inventory = {
-    'all': {
-        'children': {
-            'aws_standby': {
-                'hosts': {
-                    'k3s_node': {
-                        'ansible_host': '$EC2_IP',
-                        'ansible_user': 'ubuntu',
-                        'ansible_ssh_private_key_file': '~/.ssh/chilseong-jh.pem',
-                        'ansible_ssh_common_args': '-o StrictHostKeyChecking=no'
-                    }
-                }
-            }
-        }
-    }
-}
-with open('../../ansible/inventory/hosts.yml', 'w') as f:
-    yaml.dump(inventory, f, default_flow_style=False)
-"
-          echo "=== 생성된 hosts.yml ==="
-          cat ../../ansible/inventory/hosts.yml
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+
+      - name: Create Ansible Inventory
+        run: |
+          cd ansible
+          echo "[aws_standby]" > inventory.ini
+          echo "${{ env.EC2_IP }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/chilseong-jh.pem ansible_ssh_extra_args='-o StrictHostKeyChecking=no'" >> inventory.ini
+          echo "=== 생성된 inventory.ini ==="
+          cat inventory.ini
 
       - name: Get GitHub Actions IP and Security Group ID
         working-directory: terraform/environments/aws-standby
@@ -97,13 +82,11 @@ with open('../../ansible/inventory/hosts.yml', 'w') as f:
           chmod 600 ~/.ssh/chilseong-jh.pem
 
       - name: Wait for EC2 SSH
-        working-directory: terraform/environments/aws-standby
         run: |
-          EC2_IP=$(terraform output -raw ec2_elastic_ip)
           echo "Waiting for EC2 SSH..."
           for i in {1..20}; do
             if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 \
-              -i ~/.ssh/chilseong-jh.pem ubuntu@$EC2_IP "echo ready"; then
+              -i ~/.ssh/chilseong-jh.pem ubuntu@${{ env.EC2_IP }} "echo ready"; then
               echo "EC2 is ready!"
               break
             fi
@@ -113,7 +96,7 @@ with open('../../ansible/inventory/hosts.yml', 'w') as f:
 
       - name: Run Ansible Playbook
         working-directory: ansible
-        run: ansible-playbook playbook.yml --private-key ~/.ssh/chilseong-jh.pem -i inventory/hosts.yml
+        run: ansible-playbook -i inventory.ini playbook.yml --private-key ~/.ssh/chilseong-jh.pem
 
       - name: Upload kubeconfig
         uses: actions/upload-artifact@v4
