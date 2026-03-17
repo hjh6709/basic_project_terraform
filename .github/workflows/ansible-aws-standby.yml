@@ -47,15 +47,27 @@ jobs:
             -var="key_name=${{ secrets.KEY_NAME }}"
           EC2_IP=$(terraform output -raw ec2_elastic_ip)
           mkdir -p ../../ansible/inventory
-          echo "all:" > ../../ansible/inventory/hosts.yml
-          echo "  children:" >> ../../ansible/inventory/hosts.yml
-          echo "    aws_standby:" >> ../../ansible/inventory/hosts.yml
-          echo "      hosts:" >> ../../ansible/inventory/hosts.yml
-          echo "        k3s_node:" >> ../../ansible/inventory/hosts.yml
-          echo "          ansible_host: $EC2_IP" >> ../../ansible/inventory/hosts.yml
-          echo "          ansible_user: ubuntu" >> ../../ansible/inventory/hosts.yml
-          echo "          ansible_ssh_private_key_file: ~/.ssh/chilseong-jh.pem" >> ../../ansible/inventory/hosts.yml
-          echo "          ansible_ssh_common_args: '-o StrictHostKeyChecking=no'" >> ../../ansible/inventory/hosts.yml
+          python3 -c "
+import yaml
+inventory = {
+    'all': {
+        'children': {
+            'aws_standby': {
+                'hosts': {
+                    'k3s_node': {
+                        'ansible_host': '$EC2_IP',
+                        'ansible_user': 'ubuntu',
+                        'ansible_ssh_private_key_file': '~/.ssh/chilseong-jh.pem',
+                        'ansible_ssh_common_args': '-o StrictHostKeyChecking=no'
+                    }
+                }
+            }
+        }
+    }
+}
+with open('../../ansible/inventory/hosts.yml', 'w') as f:
+    yaml.dump(inventory, f, default_flow_style=False)
+"
           echo "=== 생성된 hosts.yml ==="
           cat ../../ansible/inventory/hosts.yml
 
