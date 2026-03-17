@@ -43,6 +43,13 @@ jobs:
         working-directory: terraform/environments/aws-standby
         run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
 
+      - name: Debug hosts.yml
+        run: |
+          echo "=== hosts.yml 내용 ==="
+          cat /home/runner/work/basic_project_terraform/basic_project_terraform/ansible/inventory/hosts.yml
+          echo "=== 파일 존재 확인 ==="
+          ls -la /home/runner/work/basic_project_terraform/basic_project_terraform/ansible/inventory/
+
       - name: Get GitHub Actions IP and Security Group ID
         working-directory: terraform/environments/aws-standby
         run: |
