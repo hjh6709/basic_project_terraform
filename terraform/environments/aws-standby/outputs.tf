@@ -27,21 +27,9 @@ output "security_group_id" {
 
 # ansible inventory 자동 생성
 resource "local_file" "ansible_inventory" {
-  content = yamlencode({
-    all = {
-      children = {
-        aws_standby = {
-          hosts = {
-            k3s_node = {
-              ansible_host                 = module.compute.ec2_elastic_ip
-              ansible_user                 = "ubuntu"
-              ansible_ssh_private_key_file = "~/.ssh/chilseong-jh.pem"
-              ansible_ssh_common_args      = "-o StrictHostKeyChecking=no"
-            }
-          }
-        }
-      }
-    }
+  content = templatefile("${path.module}/inventory.tpl", {
+    ec2_ip   = module.compute.ec2_elastic_ip
+    pem_file = "~/.ssh/chilseong-jh.pem"
   })
   filename        = "${path.module}/../../ansible/inventory/hosts.yml"
   file_permission = "0644"
