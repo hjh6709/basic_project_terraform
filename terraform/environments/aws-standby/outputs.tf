@@ -24,13 +24,3 @@ output "security_group_id" {
   description = "Security Group ID"
   value       = module.compute.security_group_id
 }
-
-# ansible inventory 자동 생성
-resource "local_file" "ansible_inventory" {
-  content = templatefile("${path.module}/inventory.tpl", {
-    ec2_ip   = module.compute.ec2_elastic_ip
-    pem_file = "~/.ssh/chilseong-jh.pem"
-  })
-  filename        = "${path.module}/../../ansible/inventory/hosts.yml"
-  file_permission = "0644"
-}
