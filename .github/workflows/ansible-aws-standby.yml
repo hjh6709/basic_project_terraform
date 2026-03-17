@@ -41,14 +41,25 @@ jobs:
 
       - name: Generate Ansible Inventory
         working-directory: terraform/environments/aws-standby
-        run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
-
-      - name: Debug hosts.yml
         run: |
-          echo "=== hosts.yml 내용 ==="
-          cat /home/runner/work/basic_project_terraform/basic_project_terraform/ansible/inventory/hosts.yml
-          echo "=== 파일 존재 확인 ==="
-          ls -la /home/runner/work/basic_project_terraform/basic_project_terraform/ansible/inventory/
+          terraform apply -auto-approve \
+            -var="my_ip=${{ secrets.MY_IP }}" \
+            -var="key_name=${{ secrets.KEY_NAME }}"
+          EC2_IP=$(terraform output -raw ec2_elastic_ip)
+          mkdir -p ../../ansible/inventory
+          cat > ../../ansible/inventory/hosts.yml << EOF
+          all:
+            children:
+              aws_standby:
+                hosts:
+                  k3s_node:
+                    ansible_host: ${EC2_IP}
+                    ansible_user: ubuntu
+                    ansible_ssh_private_key_file: ~/.ssh/chilseong-jh.pem
+                    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+          EOF
+          echo "=== 생성된 hosts.yml ==="
+          cat ../../ansible/inventory/hosts.yml
 
       - name: Get GitHub Actions IP and Security Group ID
         working-directory: terraform/environments/aws-standby
@@ -81,7 +92,8 @@ jobs:
           EC2_IP=$(terraform output -raw ec2_elastic_ip)
           echo "Waiting for EC2 SSH..."
           for i in {1..20}; do
-            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/chilseong-jh.pem ubuntu@$EC2_IP "echo ready"; then
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 \
+              -i ~/.ssh/chilseong-jh.pem ubuntu@$EC2_IP "echo ready"; then
               echo "EC2 is ready!"
               break
             fi
