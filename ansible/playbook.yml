@@ -1,6 +1,6 @@
 ---
 - name: AWS Standby k3s Node Setup
-  hosts: k3s_cluster
+  hosts: aws_standby
   become: true
 
   roles:
