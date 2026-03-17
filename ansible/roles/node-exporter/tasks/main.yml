@@ -2,7 +2,7 @@
 - name: Set Node Exporter version
   set_fact:
     node_exporter_version: "1.7.0"
-  
+
 - name: Check if Node Exporter is already installed
   stat:
     path: /usr/local/bin/node_exporter
@@ -29,10 +29,17 @@
     remote_src: true
   when: not node_exporter_installed.stat.exists
 
+- name: Create node_exporter user
+  user:
+    name: node_exporter
+    shell: /bin/false
+    system: true
+    create_home: false
+
 - name: Create Node Exporter systemd service
   copy:
     dest: /etc/systemd/system/node_exporter.service
-    counter: |
+    content: |
       [Unit]
       Description=Node Exporter
       After=network.target
@@ -44,7 +51,7 @@
 
       [Install]
       WantedBy=multi-user.target
-    notify: Restart node_exporter
+  notify: Restart node_exporter
 
 - name: Reload systemd daemon
   systemd:
@@ -63,4 +70,4 @@
 
 - name: Show Node Exporter status
   debug:
-    msg: "Node Exporter is running on port 9100" 
+    msg: "Node Exporter is running on port 9100"
