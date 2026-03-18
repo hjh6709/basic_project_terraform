@@ -1,26 +1,50 @@
-# 승민님한테 전달 → Cloudflare Failover Origin Pool 등록
-output "ec2_elastic_ip" {
-  description = "AWS Standby EC2 Elastic IP → 승민님 Cloudflare Origin Pool에 등록"
-  value       = module.compute.ec2_elastic_ip
+# 최종적으로 environment 단에서 VPC ID 출력
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.aws_network.vpc_id
 }
 
-# 성호님한테 전달 → GCP Cloud SQL Authorized Network 등록
-output "nat_gateway_ip" {
-  description = "NAT Gateway Public IP → 성호님 GCP Cloud SQL Authorized Network에 등록"
-  value       = module.network.nat_gateway_ip
+# 최종적으로 environment 단에서 Public Subnet ID 출력
+output "public_subnet_id" {
+  description = "Public subnet ID"
+  value       = module.aws_network.public_subnet_id
 }
 
-output "instance_id" {
-  description = "EC2 Instance ID"
-  value       = module.compute.instance_id
+# 최종적으로 environment 단에서 Private Subnet ID 출력
+output "private_subnet_id" {
+  description = "Private subnet ID"
+  value       = module.aws_network.private_subnet_id
 }
 
-output "ssh_command" {
-  description = "EC2 SSH 접속 명령어"
-  value       = "ssh -i ~/.ssh/chilseong-jh.pem ubuntu@${module.compute.ec2_elastic_ip}"
+# Internet Gateway ID 출력
+output "internet_gateway_id" {
+  description = "Internet Gateway ID"
+  value       = module.aws_network.internet_gateway_id
 }
 
-output "security_group_id" {
-  description = "Security Group ID"
-  value       = module.compute.security_group_id
+# Public Route Table ID 출력
+output "public_route_table_id" {
+  description = "Public route table ID"
+  value       = module.aws_network.public_route_table_id
+}
+
+# 생성된 standby security group ID 출력
+output "standby_security_group_id" {
+  description = "Security Group ID for standby EC2"
+  value       = module.aws_security.standby_security_group_id
+}
+
+output "standby_instance_id" {
+  description = "Standby EC2 instance ID"
+  value       = module.aws_compute.instance_id
+}
+
+output "standby_public_ip" {
+  description = "Standby EC2 public IP"
+  value       = module.aws_compute.public_ip
+}
+
+output "standby_private_ip" {
+  description = "Standby EC2 private IP"
+  value       = module.aws_compute.private_ip
 }
