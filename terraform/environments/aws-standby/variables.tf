@@ -42,3 +42,10 @@ variable "availability_zone" {
   description = "Availability zone"
   type        = string
 }
+
+# SSH 허용 CIDR
+# 예: "1.2.3.4/32"
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to access SSH"
+  type        = string
+}

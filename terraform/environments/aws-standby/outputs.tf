@@ -27,3 +27,9 @@ output "public_route_table_id" {
   description = "Public route table ID"
   value       = module.aws_network.public_route_table_id
 }
+
+# 생성된 standby security group ID 출력
+output "standby_security_group_id" {
+  description = "Security Group ID for standby EC2"
+  value       = module.aws_security.standby_security_group_id
+}

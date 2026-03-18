@@ -10,3 +10,15 @@ module "aws_network" {
   private_subnet_cidr = var.private_subnet_cidr
   availability_zone   = var.availability_zone
 }
+
+# aws-security 모듈 호출
+# 생성된 VPC 안에 standby EC2용 보안그룹 생성
+module "aws_security" {
+  source = "../../modules/aws-security"
+
+  project_name     = var.project_name
+  environment      = var.environment
+  vpc_id           = module.aws_network.vpc_id
+  vpc_cidr         = var.vpc_cidr
+  allowed_ssh_cidr = var.allowed_ssh_cidr
+}
