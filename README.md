@@ -1,6 +1,7 @@
 # basic_project_terraform -> feature/aws-security
 
-파일 구조 
+## 파일 구조
+```
 terraform/
  ├ environments/
  │   └ aws-standby/
@@ -19,3 +20,5 @@ terraform/
          ├ main.tf
          ├ variables.tf
          └ outputs.tf
+...
+```
