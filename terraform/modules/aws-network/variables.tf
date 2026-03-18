@@ -1,24 +1,35 @@
-variable "name_prefix" {
-  description = "리소스 이름 prefix"
+# 프로젝트 이름
+variable "project_name" {
+  description = "Project name"
   type        = string
 }
 
+# 환경 이름
+variable "environment" {
+  description = "Environment name"
+  type        = string
+}
+
+# VPC CIDR
 variable "vpc_cidr" {
-  description = "VPC CIDR 대역"
+  description = "VPC CIDR block"
   type        = string
 }
 
-variable "subnet_cidr" {
-  description = "퍼블릭 서브넷 CIDR 대역"
+# Public Subnet CIDR
+variable "public_subnet_cidr" {
+  description = "Public subnet CIDR block"
   type        = string
 }
 
-variable "az" {
-  description = "가용 영역"
+# Private Subnet CIDR
+variable "private_subnet_cidr" {
+  description = "Private subnet CIDR block"
   type        = string
 }
 
-variable "common_tags" {
-  description = "모든 리소스에 공통으로 붙는 태그"
-  type        = map(string)
+# 리소스를 배치할 AZ
+variable "availability_zone" {
+  description = "Availability zone"
+  type        = string
 }
