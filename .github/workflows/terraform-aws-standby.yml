@@ -75,8 +75,8 @@ jobs:
           echo "## Terraform Outputs" >> $GITHUB_STEP_SUMMARY
           echo "| 항목 | 값 |" >> $GITHUB_STEP_SUMMARY
           echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| k3s 노드 EIP (승민님/성호님 전달) | $(terraform output -raw elastic_ip) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Bastion EIP | $(terraform output -raw bastion_eip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| k3s 노드 EIP (승민님/성호님 전달) | $(terraform output -raw public_ip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bastion EIP | $(terraform output -raw bastion_public_ip) |" >> $GITHUB_STEP_SUMMARY
           echo "| Bastion SG ID (희정님 전달) | $(terraform output -raw bastion_sg_id) |" >> $GITHUB_STEP_SUMMARY
           echo "| k3s 노드 SSH | $(terraform output -raw ssh_command) |" >> $GITHUB_STEP_SUMMARY
           echo "| Bastion SSH | $(terraform output -raw bastion_ssh_command) |" >> $GITHUB_STEP_SUMMARY

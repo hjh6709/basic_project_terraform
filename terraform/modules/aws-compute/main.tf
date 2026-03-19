@@ -40,24 +40,7 @@ resource "aws_instance" "standby" {
   }
 }
 
-# -----------------------------------
-# Elastic IP
-# -----------------------------------
-# EC2 재시작해도 IP 고정
-# 이 IP를 승민님 → Cloudflare Origin Pool 등록
-# 이 IP를 성호님 → GCP Cloud SQL Authorized Network 등록
-resource "aws_eip" "standby" {
-  domain     = "vpc"
-  depends_on = [aws_instance.standby]
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-eip"
-    Project     = var.project_name
-    Environment = var.environment
-  }
-}
-
-resource "aws_eip_association" "standby" {
-  instance_id   = aws_instance.standby.id
-  allocation_id = aws_eip.standby.id
-}
+# EIP 불필요
+# Cloudflare Tunnel 방식 → EC2 IP를 Cloudflare에 등록하지 않음
+# Cloud SQL Auth Proxy → IAM 인증 방식이라 IP whitelist 불필요
+# Public Subnet + associate_public_ip_address = true 로 자동 Public IP 할당

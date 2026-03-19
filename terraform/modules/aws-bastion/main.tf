@@ -75,22 +75,6 @@ resource "aws_instance" "bastion" {
   }
 }
 
-# -----------------------------------
-# Bastion Elastic IP
-# -----------------------------------
-# 고정 IP로 운영자가 항상 같은 주소로 접속 가능
-resource "aws_eip" "bastion" {
-  domain     = "vpc"
-  depends_on = [aws_instance.bastion]
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-bastion-eip"
-    Project     = var.project_name
-    Environment = var.environment
-  }
-}
-
-resource "aws_eip_association" "bastion" {
-  instance_id   = aws_instance.bastion.id
-  allocation_id = aws_eip.bastion.id
-}
+# EIP 불필요 (테스트 단계)
+# associate_public_ip_address = true 로 자동 Public IP 할당
+# 재시작 시 IP 변경될 수 있으나 테스트 환경에서는 허용

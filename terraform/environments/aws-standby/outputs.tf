@@ -26,11 +26,10 @@ output "instance_id" {
   value       = module.aws_compute.instance_id
 }
 
-# 승민님 → Cloudflare Origin Pool 등록
-# 성호님 → GCP Cloud SQL Authorized Network 등록
-output "elastic_ip" {
-  description = "EC2 Elastic IP"
-  value       = module.aws_compute.elastic_ip
+# Tunnel 방식 → 고정 IP 불필요, 자동 할당 Public IP 사용
+output "public_ip" {
+  description = "k3s 노드 Public IP"
+  value       = module.aws_compute.public_ip
 }
 
 output "ssh_command" {
@@ -45,9 +44,9 @@ output "bastion_sg_id" {
   value       = module.aws_bastion.bastion_sg_id
 }
 
-output "bastion_eip" {
+output "bastion_public_ip" {
   description = "Bastion Host Public IP"
-  value       = module.aws_bastion.bastion_eip
+  value       = module.aws_bastion.bastion_public_ip
 }
 
 output "bastion_ssh_command" {

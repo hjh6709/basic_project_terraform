@@ -4,12 +4,13 @@ output "bastion_sg_id" {
   value       = aws_security_group.bastion.id
 }
 
-output "bastion_eip" {
-  description = "Bastion Host Public IP"
-  value       = aws_eip.bastion.public_ip
+# Public IP (자동 할당)
+output "bastion_public_ip" {
+  description = "Bastion Host Public IP (자동 할당)"
+  value       = aws_instance.bastion.public_ip
 }
 
 output "bastion_ssh_command" {
   description = "Bastion SSH 접속 명령어"
-  value       = "ssh -i ~/.ssh/<your-key>.pem ubuntu@${aws_eip.bastion.public_ip}"
+  value       = "ssh -i ~/.ssh/<your-key>.pem ubuntu@${aws_instance.bastion.public_ip}"
 }

@@ -3,14 +3,14 @@ output "instance_id" {
   value       = aws_instance.standby.id
 }
 
-# 승민님 → Cloudflare Origin Pool 등록
-# 성호님 → GCP Cloud SQL Authorized Network 등록
-output "elastic_ip" {
-  description = "Elastic IP of standby EC2"
-  value       = aws_eip.standby.public_ip
+# Public IP (자동 할당 - 재시작 시 변경될 수 있음)
+# Tunnel 방식이라 고정 IP 불필요
+output "public_ip" {
+  description = "EC2 Public IP (자동 할당)"
+  value       = aws_instance.standby.public_ip
 }
 
 output "ssh_command" {
   description = "SSH 접속 명령어"
-  value       = "ssh -i ~/.ssh/<your-key>.pem ubuntu@${aws_eip.standby.public_ip}"
+  value       = "ssh -i ~/.ssh/<your-key>.pem ubuntu@${aws_instance.standby.public_ip}"
 }
