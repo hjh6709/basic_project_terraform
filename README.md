@@ -127,6 +127,6 @@ push → Terraform workflow → EC2 생성
 | 2 | Security Group (Bastion / k3s) | 완료 |
 | 3 | EC2 (Bastion / k3s 노드) | 완료 |
 | 4 | k3s 설치 + Node Exporter | 완료 |
-| 5 | Cloudflare Tunnel 연결 | 승민님 token 대기 중 |
+| 5 | Cloudflare Tunnel 연결 | 완료 |
 | 6 | 앱 배포 (호성님 연동) | 예정 |
 | 7 | Failover 테스트 | 예정 |
