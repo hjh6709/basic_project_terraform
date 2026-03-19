@@ -43,33 +43,34 @@ variable "availability_zone" {
 # SSH 허용 CIDR
 # GitHub Actions에서 MY_IP Secret으로 주입
 variable "allowed_ssh_cidr" {
-  description = "CIDR block allowed to access SSH"
+  description = "CIDR block allowed to SSH"
   type        = string
   default     = "0.0.0.0/0"
 }
 
+# k3s 노드 인스턴스 타입
 variable "instance_type" {
-  description = "EC2 instance type"
+  description = "k3s node EC2 instance type"
   type        = string
   default     = "t3.small"
 }
 
+# Bastion 인스턴스 타입 (트래픽 적으므로 t3.micro)
+variable "bastion_instance_type" {
+  description = "Bastion Host EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+# Root EBS Volume 크기
 variable "root_volume_size" {
-  description = "Root volume size in GB"
+  description = "Root EBS volume size (GB)"
   type        = number
   default     = 20
 }
 
 # AWS 콘솔에서 미리 만들어둔 Key Pair 이름
-# GitHub Actions에서 KEY_NAME Secret으로 주입
 variable "key_name" {
   description = "AWS Key Pair name"
   type        = string
-}
-
-# Bastion 인스턴스 타입
-variable "bastion_instance_type" {
-  description = "Bastion Host EC2 instance type"
-  type        = string
-  default     = "t3.micro"
 }

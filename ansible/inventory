@@ -1,0 +1,4 @@
+# inventory.ini는 GitHub Actions에서 자동 생성됨
+# 로컬 실행 시 아래 형식으로 직접 작성
+# [aws_standby]
+# <EC2_PUBLIC_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/<your-key>.pem

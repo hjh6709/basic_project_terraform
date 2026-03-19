@@ -1,9 +1,9 @@
 # terraform.tfvars.example
 # cp terraform.tfvars.example terraform.tfvars 후 값 수정
-# terraform.tfvars는 .gitignore에 등록되어 있어 커밋 안 됨
+# terraform.tfvars는 .gitignore에 등록되어 커밋 안 됨
 
 aws_region          = "ap-northeast-2"
-project_name        = "hybrid-ha"
+project_name        = "hybrid-project"
 environment         = "aws-standby"
 
 vpc_cidr            = "10.20.0.0/16"
@@ -11,15 +11,12 @@ public_subnet_cidr  = "10.20.1.0/24"
 private_subnet_cidr = "10.20.2.0/24"
 availability_zone   = "ap-northeast-2a"
 
-# 본인 공인 IP 확인: curl ifconfig.me
+# 본인 공인 IP: curl ifconfig.me
 allowed_ssh_cidr    = "본인IP/32"
 
-# k3s 노드
-instance_type       = "t3.small"
-root_volume_size    = 20
-
-# Bastion (t3.micro로 충분)
+instance_type         = "t3.small"
 bastion_instance_type = "t3.micro"
+root_volume_size      = 20
 
 # AWS 콘솔 → EC2 → Key Pairs에서 만든 키페어 이름
-key_name            = "키페어이름"
+key_name = "키페어이름"
