@@ -53,3 +53,10 @@ output "k3s_ssh_command" {
   description = "k3s Node SSH 접속 명령어"
   value       = "ssh -i ~/.ssh/<your-key>.pem ubuntu@${aws_instance.k3s.public_ip}"
 }
+
+# k3s 노드 SG ID
+# Ansible workflow에서 SSH 임시 허용용
+output "standby_security_group_id" {
+  description = "k3s 노드 Security Group ID"
+  value       = aws_security_group.k3s.id
+}
