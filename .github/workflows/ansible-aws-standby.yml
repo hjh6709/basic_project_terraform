@@ -95,19 +95,18 @@ jobs:
             sleep 15
           done
 
-      # cloudflared role은 tunnel_token이 필요
-      # 승민님 Cloudflare 값 확정 전까지는 k3s + node-exporter만 실행
-      # tunnel_token 받으면 아래 주석 해제
       - name: Run Ansible Playbook
         working-directory: ansible
         run: |
-          ansible-playbook -i inventory.ini playbook.yml \
-            --private-key ~/.ssh/standby-key.pem \
-            --skip-tags cloudflared
-          # tunnel_token 받으면 아래로 교체:
-          # ansible-playbook -i inventory.ini playbook.yml \
-          #   --private-key ~/.ssh/standby-key.pem \
-          #   -e "tunnel_token=${{ secrets.CF_TUNNEL_TOKEN }}"
+          # CF_TUNNEL_TOKEN이 있으면 같이 전달, 없으면 생략 (cloudflared role이 자동으로 건너뜀)
+          if [ -n "${{ secrets.CF_TUNNEL_TOKEN }}" ]; then
+            ansible-playbook -i inventory.ini playbook.yml \
+              --private-key ~/.ssh/standby-key.pem \
+              -e "tunnel_token=${{ secrets.CF_TUNNEL_TOKEN }}"
+          else
+            ansible-playbook -i inventory.ini playbook.yml \
+              --private-key ~/.ssh/standby-key.pem
+          fi
 
       - name: Upload kubeconfig
         uses: actions/upload-artifact@v4

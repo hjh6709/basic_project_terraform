@@ -1,6 +1,7 @@
 ---
 # cloudflared를 k3s Kubernetes 위에 Deployment로 배포
-# tunnel_token은 GitHub Actions에서 Terraform output으로 가져와 전달
+# tunnel_token은 GitHub Actions CF_TUNNEL_TOKEN Secret으로 전달
+# tunnel_token 없으면 전체 role 건너뜀
 
 - name: Create Cloudflare tunnel token secret
   shell: |
@@ -10,6 +11,7 @@
     KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl apply -f -
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  when: tunnel_token is defined and tunnel_token != ""
 
 - name: Deploy cloudflared Deployment
   shell: |
@@ -47,6 +49,7 @@
     EOF
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  when: tunnel_token is defined and tunnel_token != ""
 
 - name: Wait for cloudflared pod to be running
   shell: kubectl get pods -l app=cloudflared --field-selector=status.phase=Running --no-headers
@@ -56,7 +59,9 @@
   until: cloudflared_status.stdout != ""
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  when: tunnel_token is defined and tunnel_token != ""
 
 - name: Show cloudflared status
   debug:
     msg: "{{ cloudflared_status.stdout }}"
+  when: tunnel_token is defined and tunnel_token != "" and cloudflared_status is defined
