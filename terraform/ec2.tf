@@ -1,5 +1,5 @@
 # -----------------------------------------------
-# Ubuntu 22.04 LTS AMI (동적 조회)
+# Ubuntu 22.04 LTS AMI (동적 조회) .
 # SSM Parameter Store에서 최신 AMI ID 가져옴
 # -----------------------------------------------
 data "aws_ssm_parameter" "ubuntu_2204" {
