@@ -1,11 +1,13 @@
 name: Ansible AWS Standby Setup
 
 on:
+  # Terraform 완료 후 자동 트리거
   workflow_run:
     workflows:
       - "Terraform AWS Standby"
     types:
       - completed
+  # 수동 실행도 가능
   workflow_dispatch:
 
 jobs:
@@ -16,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Ansible
         run: |
@@ -39,32 +41,31 @@ jobs:
         working-directory: terraform/environments/aws-standby
         run: terraform init
 
-      - name: Generate Ansible Inventory
+      # Terraform apply 재실행 없이 state에서 output만 읽음
+      - name: Get EC2 IP from Terraform state
         working-directory: terraform/environments/aws-standby
         run: |
-          terraform apply -auto-approve \
-            -var="my_ip=${{ secrets.MY_IP }}" \
-            -var="key_name=${{ secrets.KEY_NAME }}"
-          EC2_IP=$(terraform output -raw ec2_elastic_ip)
+          EC2_IP=$(terraform output -raw elastic_ip)
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+          echo "EC2 IP: $EC2_IP"
 
       - name: Create Ansible Inventory
         run: |
           cd ansible
           echo "[aws_standby]" > inventory.ini
-          echo "${{ env.EC2_IP }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/chilseong-jh.pem ansible_ssh_extra_args='-o StrictHostKeyChecking=no'" >> inventory.ini
-          echo "=== 생성된 inventory.ini ==="
+          echo "${{ env.EC2_IP }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/standby-key.pem ansible_ssh_extra_args='-o StrictHostKeyChecking=no'" >> inventory.ini
+          echo "=== inventory.ini ==="
           cat inventory.ini
 
+      # Ansible이 SSH로 EC2에 접속하려면 GitHub Actions IP를 SG에 임시 허용
       - name: Get GitHub Actions IP and Security Group ID
         working-directory: terraform/environments/aws-standby
         run: |
           ACTIONS_IP=$(curl -s https://api.ipify.org)/32
           echo "ACTIONS_IP=$ACTIONS_IP" >> $GITHUB_ENV
-          echo "GitHub Actions IP: $ACTIONS_IP"
-          SG_ID=$(terraform output -raw security_group_id)
+          SG_ID=$(terraform output -raw standby_security_group_id)
           echo "SG_ID=$SG_ID" >> $GITHUB_ENV
-          echo "Security Group ID: $SG_ID"
+          echo "Actions IP: $ACTIONS_IP / SG: $SG_ID"
 
       - name: Add GitHub Actions IP to Security Group
         run: |
@@ -78,25 +79,35 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/chilseong-jh.pem
-          chmod 600 ~/.ssh/chilseong-jh.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/standby-key.pem
+          chmod 600 ~/.ssh/standby-key.pem
 
       - name: Wait for EC2 SSH
         run: |
           echo "Waiting for EC2 SSH..."
           for i in {1..20}; do
             if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 \
-              -i ~/.ssh/chilseong-jh.pem ubuntu@${{ env.EC2_IP }} "echo ready"; then
+              -i ~/.ssh/standby-key.pem ubuntu@${{ env.EC2_IP }} "echo ready"; then
               echo "EC2 is ready!"
               break
             fi
-            echo "Attempt $i failed, retrying..."
+            echo "Attempt $i failed, retrying in 15s..."
             sleep 15
           done
 
+      # cloudflared role은 tunnel_token이 필요
+      # 승민님 Cloudflare 값 확정 전까지는 k3s + node-exporter만 실행
+      # tunnel_token 받으면 아래 주석 해제
       - name: Run Ansible Playbook
         working-directory: ansible
-        run: ansible-playbook -i inventory.ini playbook.yml --private-key ~/.ssh/chilseong-jh.pem
+        run: |
+          ansible-playbook -i inventory.ini playbook.yml \
+            --private-key ~/.ssh/standby-key.pem \
+            --skip-tags cloudflared
+          # tunnel_token 받으면 아래로 교체:
+          # ansible-playbook -i inventory.ini playbook.yml \
+          #   --private-key ~/.ssh/standby-key.pem \
+          #   -e "tunnel_token=${{ secrets.CF_TUNNEL_TOKEN }}"
 
       - name: Upload kubeconfig
         uses: actions/upload-artifact@v4
@@ -104,6 +115,7 @@ jobs:
           name: kubeconfig
           path: ansible/kubeconfig/k3s.yaml
 
+      # 완료 후 임시 허용한 Actions IP 제거 (보안)
       - name: Remove GitHub Actions IP from Security Group
         if: always()
         run: |

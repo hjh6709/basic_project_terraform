@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -32,4 +32,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
+        run: |
+          terraform destroy -auto-approve \
+            -var="allowed_ssh_cidr=${{ secrets.MY_IP }}" \
+            -var="key_name=${{ secrets.KEY_NAME }}"

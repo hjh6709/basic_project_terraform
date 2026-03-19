@@ -7,7 +7,9 @@ on:
     paths:
       - 'terraform/environments/aws-standby/**'
       - 'terraform/modules/aws-network/**'
+      - 'terraform/modules/aws-security/**'
       - 'terraform/modules/aws-compute/**'
+      - 'terraform/modules/aws-bastion/**'
       - '.github/workflows/terraform-aws-standby.yml'
   pull_request:
     branches:
@@ -15,7 +17,9 @@ on:
     paths:
       - 'terraform/environments/aws-standby/**'
       - 'terraform/modules/aws-network/**'
+      - 'terraform/modules/aws-security/**'
       - 'terraform/modules/aws-compute/**'
+      - 'terraform/modules/aws-bastion/**'
       - '.github/workflows/terraform-aws-standby.yml'
 
 jobs:
@@ -29,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -53,19 +57,26 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
+        run: |
+          terraform plan \
+            -var="allowed_ssh_cidr=${{ secrets.MY_IP }}" \
+            -var="key_name=${{ secrets.KEY_NAME }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var="my_ip=${{ secrets.MY_IP }}" -var="key_name=${{ secrets.KEY_NAME }}"
+        run: |
+          terraform apply -auto-approve \
+            -var="allowed_ssh_cidr=${{ secrets.MY_IP }}" \
+            -var="key_name=${{ secrets.KEY_NAME }}"
 
       - name: Terraform Output Summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          echo "## 🚀 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "## Terraform Outputs" >> $GITHUB_STEP_SUMMARY
           echo "| 항목 | 값 |" >> $GITHUB_STEP_SUMMARY
           echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| EC2 Elastic IP (승민님 전달) | $(terraform output -raw ec2_elastic_ip) |" >> $GITHUB_STEP_SUMMARY
-          echo "| NAT Gateway IP (성호님 전달) | $(terraform output -raw nat_gateway_ip) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Instance ID | $(terraform output -raw instance_id) |" >> $GITHUB_STEP_SUMMARY
-          echo "| SSH 접속 명령어 | \`$(terraform output -raw ssh_command)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| k3s 노드 EIP (승민님/성호님 전달) | $(terraform output -raw elastic_ip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bastion EIP | $(terraform output -raw bastion_eip) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bastion SG ID (희정님 전달) | $(terraform output -raw bastion_sg_id) |" >> $GITHUB_STEP_SUMMARY
+          echo "| k3s 노드 SSH | $(terraform output -raw ssh_command) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bastion SSH | $(terraform output -raw bastion_ssh_command) |" >> $GITHUB_STEP_SUMMARY

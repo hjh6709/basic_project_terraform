@@ -1,5 +1,4 @@
 # aws-network 모듈 호출
-# 여기서 실제 값들을 넘겨서 VPC / Subnet / Route를 생성
 module "aws_network" {
   source = "../../modules/aws-network"
 
@@ -12,7 +11,7 @@ module "aws_network" {
 }
 
 # aws-security 모듈 호출
-# 생성된 VPC 안에 standby EC2용 보안그룹 생성
+# network 완료 후 VPC ID 받아서 SG 생성
 module "aws_security" {
   source = "../../modules/aws-security"
 
@@ -23,14 +22,31 @@ module "aws_security" {
   allowed_ssh_cidr = var.allowed_ssh_cidr
 }
 
+# aws-compute 모듈 호출
+# network / security 완료 후 EC2 + EIP 생성
 module "aws_compute" {
   source = "../../modules/aws-compute"
 
-  project_name                = var.project_name
-  environment                 = var.environment
-  subnet_id                   = module.aws_network.public_subnet_id
-  security_group_ids          = [module.aws_security.standby_security_group_id]
-  instance_type               = var.instance_type
-  key_name                    = var.key_name
-  associate_public_ip_address = true
+  project_name      = var.project_name
+  environment       = var.environment
+  subnet_id         = module.aws_network.public_subnet_id
+  security_group_id = module.aws_security.standby_security_group_id
+  instance_type     = var.instance_type
+  root_volume_size  = var.root_volume_size
+  key_name          = var.key_name
+}
+
+# aws-bastion 모듈 호출
+# Public Subnet에 Bastion Host 생성
+# bastion_sg_id → 희정님 Monitoring Server SG에 등록
+module "aws_bastion" {
+  source = "../../modules/aws-bastion"
+
+  project_name     = var.project_name
+  environment      = var.environment
+  subnet_id        = module.aws_network.public_subnet_id
+  vpc_id           = module.aws_network.vpc_id
+  allowed_ssh_cidr = var.allowed_ssh_cidr
+  key_name         = var.key_name
+  instance_type    = var.bastion_instance_type
 }

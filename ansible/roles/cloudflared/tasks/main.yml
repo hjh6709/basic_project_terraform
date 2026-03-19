@@ -1,0 +1,62 @@
+---
+# cloudflared를 k3s Kubernetes 위에 Deployment로 배포
+# tunnel_token은 GitHub Actions에서 Terraform output으로 가져와 전달
+
+- name: Create Cloudflare tunnel token secret
+  shell: |
+    KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl create secret generic tunnel-token \
+      --from-literal=token='{{ tunnel_token }}' \
+      --dry-run=client -o yaml | \
+    KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl apply -f -
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Deploy cloudflared Deployment
+  shell: |
+    cat <<EOF | KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl apply -f -
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: cloudflared
+      namespace: default
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: cloudflared
+      template:
+        metadata:
+          labels:
+            app: cloudflared
+        spec:
+          containers:
+          - name: cloudflared
+            image: cloudflare/cloudflared:latest
+            args:
+              - tunnel
+              - --no-autoupdate
+              - run
+              - --token
+              - $(TUNNEL_TOKEN)
+            env:
+              - name: TUNNEL_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: tunnel-token
+                    key: token
+    EOF
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for cloudflared pod to be running
+  shell: kubectl get pods -l app=cloudflared --field-selector=status.phase=Running --no-headers
+  register: cloudflared_status
+  retries: 10
+  delay: 10
+  until: cloudflared_status.stdout != ""
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Show cloudflared status
+  debug:
+    msg: "{{ cloudflared_status.stdout }}"

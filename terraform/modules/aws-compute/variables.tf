@@ -1,42 +1,39 @@
-# 프로젝트 이름
 variable "project_name" {
   description = "Project name"
   type        = string
 }
 
-# 환경 이름
 variable "environment" {
   description = "Environment name"
   type        = string
 }
 
-# EC2를 띄울 subnet ID
+# feature/aws-security에서 만든 public_subnet_id
 variable "subnet_id" {
-  description = "Subnet ID for EC2"
+  description = "Subnet ID where EC2 will be placed"
   type        = string
 }
 
-# EC2에 부착할 Security Group ID 목록
-variable "security_group_ids" {
-  description = "Security Group IDs for EC2"
-  type        = list(string)
+# feature/aws-security에서 만든 standby_security_group_id
+variable "security_group_id" {
+  description = "Security Group ID to attach to EC2"
+  type        = string
 }
 
-# EC2 타입
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
+  default     = "t3.small"
 }
 
-# AWS key pair 이름
+variable "root_volume_size" {
+  description = "Root volume size in GB"
+  type        = number
+  default     = 20
+}
+
+# AWS 콘솔에서 미리 만들어둔 Key Pair 이름
 variable "key_name" {
-  description = "EC2 key pair name"
+  description = "AWS Key Pair name"
   type        = string
-}
-
-# Public IP 자동 할당 여부
-variable "associate_public_ip_address" {
-  description = "Whether to associate a public IP address"
-  type        = bool
-  default     = true
 }

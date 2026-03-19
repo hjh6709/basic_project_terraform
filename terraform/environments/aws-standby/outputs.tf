@@ -1,50 +1,56 @@
-# 최종적으로 environment 단에서 VPC ID 출력
+# 네트워크 outputs
 output "vpc_id" {
   description = "VPC ID"
   value       = module.aws_network.vpc_id
 }
 
-# 최종적으로 environment 단에서 Public Subnet ID 출력
 output "public_subnet_id" {
   description = "Public subnet ID"
   value       = module.aws_network.public_subnet_id
 }
 
-# 최종적으로 environment 단에서 Private Subnet ID 출력
 output "private_subnet_id" {
   description = "Private subnet ID"
   value       = module.aws_network.private_subnet_id
 }
 
-# Internet Gateway ID 출력
-output "internet_gateway_id" {
-  description = "Internet Gateway ID"
-  value       = module.aws_network.internet_gateway_id
-}
-
-# Public Route Table ID 출력
-output "public_route_table_id" {
-  description = "Public route table ID"
-  value       = module.aws_network.public_route_table_id
-}
-
-# 생성된 standby security group ID 출력
+# 보안 outputs
 output "standby_security_group_id" {
-  description = "Security Group ID for standby EC2"
+  description = "Security Group ID"
   value       = module.aws_security.standby_security_group_id
 }
 
-output "standby_instance_id" {
-  description = "Standby EC2 instance ID"
+# 컴퓨트 outputs
+output "instance_id" {
+  description = "EC2 Instance ID"
   value       = module.aws_compute.instance_id
 }
 
-output "standby_public_ip" {
-  description = "Standby EC2 public IP"
-  value       = module.aws_compute.public_ip
+# 승민님 → Cloudflare Origin Pool 등록
+# 성호님 → GCP Cloud SQL Authorized Network 등록
+output "elastic_ip" {
+  description = "EC2 Elastic IP"
+  value       = module.aws_compute.elastic_ip
 }
 
-output "standby_private_ip" {
-  description = "Standby EC2 private IP"
-  value       = module.aws_compute.private_ip
+output "ssh_command" {
+  description = "SSH 접속 명령어"
+  value       = module.aws_compute.ssh_command
+}
+
+# Bastion outputs
+# 희정님한테 전달 → Monitoring Server SG ingress에 등록
+output "bastion_sg_id" {
+  description = "Bastion SG ID → 희정님 Monitoring Server SG에 등록"
+  value       = module.aws_bastion.bastion_sg_id
+}
+
+output "bastion_eip" {
+  description = "Bastion Host Public IP"
+  value       = module.aws_bastion.bastion_eip
+}
+
+output "bastion_ssh_command" {
+  description = "Bastion SSH 접속 명령어"
+  value       = module.aws_bastion.bastion_ssh_command
 }
