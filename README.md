@@ -76,7 +76,7 @@ Cloudflare가 그 터널을 통해 트래픽을 전달하는 방식이다.
 | `bastion_sg_id` | 희정님 | Monitoring Server SG ingress 등록 |
 | `vpc_id` | 희정님 | Monitoring Server 배치 VPC |
 | `private_subnet_id` | 희정님 | Monitoring Server 배치 Subnet |
-| `k3s_public_ip` | 승민님 | Cloudflare Tunnel 연결 확인 |
+| `k3s_public_ip` | 희정님 | Prometheus Node Exporter scrape 대상 |
 
 ---
 
