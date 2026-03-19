@@ -10,7 +10,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: terraform/environments/aws-standby
+        working-directory: terraform
 
     steps:
       - name: Checkout

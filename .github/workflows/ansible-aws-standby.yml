@@ -1,13 +1,11 @@
 name: Ansible AWS Standby Setup
 
 on:
-  # Terraform 완료 후 자동 트리거
   workflow_run:
     workflows:
       - "Terraform AWS Standby"
     types:
       - completed
-  # 수동 실행도 가능
   workflow_dispatch:
 
 jobs:
@@ -38,14 +36,13 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: Terraform Init
-        working-directory: terraform/environments/aws-standby
+        working-directory: terraform
         run: terraform init
 
-      # Terraform apply 재실행 없이 state에서 output만 읽음
       - name: Get EC2 IP from Terraform state
-        working-directory: terraform/environments/aws-standby
+        working-directory: terraform
         run: |
-          EC2_IP=$(terraform output -raw public_ip)
+          EC2_IP=$(terraform output -raw k3s_public_ip)
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
           echo "EC2 IP: $EC2_IP"
 
@@ -57,9 +54,8 @@ jobs:
           echo "=== inventory.ini ==="
           cat inventory.ini
 
-      # Ansible이 SSH로 EC2에 접속하려면 GitHub Actions IP를 SG에 임시 허용
       - name: Get GitHub Actions IP and Security Group ID
-        working-directory: terraform/environments/aws-standby
+        working-directory: terraform
         run: |
           ACTIONS_IP=$(curl -s https://api.ipify.org)/32
           echo "ACTIONS_IP=$ACTIONS_IP" >> $GITHUB_ENV
@@ -98,7 +94,6 @@ jobs:
       - name: Run Ansible Playbook
         working-directory: ansible
         run: |
-          # CF_TUNNEL_TOKEN이 있으면 같이 전달, 없으면 생략 (cloudflared role이 자동으로 건너뜀)
           if [ -n "${{ secrets.CF_TUNNEL_TOKEN }}" ]; then
             ansible-playbook -i inventory.ini playbook.yml \
               --private-key ~/.ssh/standby-key.pem \
@@ -114,7 +109,6 @@ jobs:
           name: kubeconfig
           path: ansible/kubeconfig/k3s.yaml
 
-      # 완료 후 임시 허용한 Actions IP 제거 (보안)
       - name: Remove GitHub Actions IP from Security Group
         if: always()
         run: |
